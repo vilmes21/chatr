@@ -28,8 +28,16 @@ func main(){
 	INSERT INTO users (age, email, first_name, last_name)
 	VALUES ($1, $2, $3, $4)
 	RETURNING id`
+
+	// sqlStatement := `
+	// INSERT INTO chat (title)
+	// VALUES ($1)
+	// RETURNING id`
 	  id := 0
-	  err = db.QueryRow(sqlStatement, 30, "a@b.com", "Jack", "Smith").Scan(&id)
+	  err = db.QueryRow(sqlStatement, 30, "a2@b.com", "J4ack", "Smith").Scan(&id)
+
+	//err = db.QueryRow(sqlStatement, "Funny Things deux").Scan(&id)
+
 	  if err != nil {
 		panic(err)
 	  }
