@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"time"
 )
 
 type Store interface {
@@ -21,8 +22,7 @@ type dbStore struct {
 
 type Chat struct {
 	Id int 
-	Content string 
-	Time string 
+	Title string 
 }
 
 type User struct {
@@ -44,5 +44,5 @@ type ChatSpeaker struct {
 type Sentence struct {
 	ChatSpeakerId int 
 	Content string 
-	Time string 
+	Time time.Time 
 }

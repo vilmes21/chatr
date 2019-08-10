@@ -2,27 +2,25 @@ package main
 
 import (
     "fmt"
+    // "strconv"
     "log"
     "net/http"
 	"database/sql"
     "sync"
+    // "time"
     _"github.com/lib/pq"
     "../keys"
+    // "../controller"
   )
 
 var counter int
 var mutex = &sync.Mutex{}
 
-
 func signup(w http.ResponseWriter, r *http.Request) {
     fmt.Fprintf(w, "name to sign up: " + r.FormValue("name"))
 }
 
-func createSentenceHandler(w http.ResponseWriter, r *http.Request){
-    content := r.FormValue("content")
-    chatSpeakerId := r.FormValue("chatSpeakerId")
-    fmt.Fprintf(w, "lala " + content + chatSpeakerId)
-}
+
 
 func main() {
     connectInfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable",
@@ -40,7 +38,7 @@ func main() {
 	InitStore(&dbStore{db: db})
 
     http.HandleFunc("/signup", signup)
-    http.HandleFunc("/sentence/create", createSentenceHandler)
+    http.HandleFunc("/sentence/create", CreateSentenceHandler)
 
     log.Fatal(http.ListenAndServe(":8081", nil))
 }
