@@ -1,2 +1,2 @@
 # chatr
-Golang server, React client
+Go server, React client

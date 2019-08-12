@@ -3,6 +3,9 @@ package main
 import (
 	"database/sql"
 	"time"
+	"fmt"
+	"../keys"
+	_"github.com/lib/pq"
 )
 
 type Store interface {
@@ -45,4 +48,20 @@ type Sentence struct {
 	ChatSpeakerId int 
 	Content string 
 	Time time.Time 
+}
+
+func initDB(){
+    connectInfo := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable",
+    keys.Host, keys.Port, keys.User, keys.Dbname)
+    
+    db, err := sql.Open("postgres", connectInfo)
+    if err != nil {
+        panic(err)
+    }
+    err = db.Ping()
+    if err != nil {
+        panic(err)
+    }
+
+	InitStore(&dbStore{db: db})
 }

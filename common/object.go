@@ -5,3 +5,8 @@ type JsonResp struct {
 	Id int
 	Msg string
 }
+
+type Message struct {
+	Username string
+	Message  string
+}
