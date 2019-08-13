@@ -2,12 +2,30 @@ import React, {Component} from 'react';
 import OldMsgs from './OldMsgs';
 import axios from 'axios'
 
-const _host = "ws://localhost:8081"
+const _host = "ws://localhost:8081";
+let ws;
+
+const _fakeChatId = Math.ceil(Math.random() * 10) % 2==0? 1: 2
+console.log("_fakeChatId: ", _fakeChatId)
 
 class ChatRoom extends Component {
     state={
         msg: "",
         oldMsgs: []
+    }
+
+    componentDidMount(){
+        ws = new WebSocket(_host + "/sentence/create");
+   
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data)
+            console.log("de server data:",data)
+            const msg = {
+                content: data.content,
+                chatSpeakerId: data.chatSpeakerId
+            }
+            this.appendMsg(msg)
+        }
     }
 
     _change = (ev) => {
@@ -24,35 +42,19 @@ class ChatRoom extends Component {
         })
     }
 
-    _toServer = msgObj =>{
-        const ws = new WebSocket(_host + "/sentence/create");
-        ws.onopen = event => {
-            ws.send(JSON.stringify(msgObj));
-          };
-        ws.onmessage = (event) => {
-            console.log('just got msg back de server')
-            const data = JSON.parse(event.data)
-            const msg = {
-                content: data.Content,
-                chatSpeakerId: data.ChatSpeakerId
-            }
-            this.appendMsg(msg)
-            console.log("APPENDING de socket server la:", event.data, "msg :", msg);
-          }
-    }
- 
     _submit = (ev) => {
         ev.preventDefault();
         const {speakerId}=this.props;
         const {msg} = this.state;
-
+        
         if (msg) {
             const newMsg ={
                 content: msg,
-                chatSpeakerId: speakerId
+                chatSpeakerId: speakerId,
+                chatId: _fakeChatId
             };
             
-            this._toServer(newMsg)
+            ws.send(JSON.stringify(newMsg));
             this.setState({msg: ""})
         } else {
             alert("Don't send empty stuff")

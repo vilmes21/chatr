@@ -1,46 +1,70 @@
 package main
 
 import (
-    // "net/http"
-    // "fmt"
-    // "strconv"
-    // "time"
-    // "encoding/json"
-    // "../common"
-    
+	"log"
+	// "fmt"
+	"net/http"
+	"time"
+	"../common"
+
+	"github.com/gorilla/websocket"
 )
 
-// func CreateSentenceHandler(w http.ResponseWriter, r *http.Request){
-//     err := r.ParseForm()
-//     if err != nil {
-//         fmt.Println(fmt.Errorf("Error: %v", err))
-//         w.WriteHeader(http.StatusInternalServerError)
-//         return
-//     }
+var clients = make(map[*websocket.Conn]int)
+var broadcast = make(chan common.MessageObj)
 
-//     s := Sentence{Time: time.Now()}
-//     s.Content = r.Form.Get("content")
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
 
-//     id, _ := strconv.Atoi(r.Form.Get("chatSpeakerId"))
-//     s.ChatSpeakerId = id
+func CreateSentenceHandler(w http.ResponseWriter, r *http.Request) {
+	ws, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-//     res := common.JsonResp{}
-    
-// 	err = store.CreateSentence(&s)
-// 	if err != nil {
-//         fmt.Println(err)
-//         res.Msg = "Failed"
-//     } else {
-//         res.Success = true
-//     }
-    
-//     resString, err := json.Marshal(res)
-//     if err != nil {
-//         http.Error(w, err.Error(), http.StatusInternalServerError)
-//         return
-//     }
-//     w.WriteHeader(200)
-//     w.Header().Set("Content-Type", "application/json")
-//     w.Write(resString)
-// }
+	defer ws.Close()
 
+	for {
+		var msg common.MessageObj
+		err := ws.ReadJSON(&msg)
+
+		//todo: verify in db before setting this
+		clients[ws] = msg.ChatId
+
+		if err != nil {
+			log.Printf("error: %v", err)
+			delete(clients, ws)
+			break
+		}
+
+		//save to db
+		newSentence := Sentence {Time: time.Now(), Content: msg.Content, ChatSpeakerId: msg.ChatSpeakerId}
+		err = store.CreateSentence(&newSentence) 
+		if err != nil {
+			log.Printf("error: %v", err)
+			break
+		}
+		broadcast <- msg
+	}
+}
+
+func pushMsgToClient() {
+	for {
+		msg := <-broadcast
+	
+		//todo: for loop can be optimized to using arrary or map of clients of one chatID 
+		for client, chatId := range clients {
+			if chatId == msg.ChatId {
+				err := client.WriteJSON(msg)
+				if err != nil {
+					log.Printf("error: %v", err)
+					client.Close()
+					delete(clients, client)
+				}
+			}
+		}
+	}
+}

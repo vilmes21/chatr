@@ -10,3 +10,9 @@ type Message struct {
 	Username string
 	Message  string
 }
+
+type MessageObj struct {
+	ChatSpeakerId int `json:"chatSpeakerId"`
+	Content string `json:"content"`
+	ChatId int `json:"chatId"`
+}
