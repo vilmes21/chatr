@@ -1,9 +1,17 @@
 import React, {Component} from 'react';
+import demoNames from '../fakeData/demoNames'
+import {
+    BrowserRouter as Router,
+    Route,
+    Link,
+    Redirect,
+    withRouter
+  } from 'react-router-dom'
 
 class Login extends Component {
     state = {
         name: "",
-        showWarning: false
+        showWarning: false,
     }
 
     _change = (ev) => {
@@ -15,28 +23,42 @@ class Login extends Component {
     }
 
     _submit = (ev) => {
+        const {login} = this.props;
         ev.preventDefault();
         const {name} = {
             ...this.state
         };
 
-        if (name) {
-            this
-                .props
-                .signup({name});
+        if (demoNames[name]) {
+            this.props.login()
         } else {
             this.setState({showWarning: true})
         }
     }
 
     render() {
+        const {isAuth, login}=this.props;
         const {showWarning} = this.state;
+
+        if (isAuth) {
+            return <Redirect to='/' foo={33}/>
+        }
+
         return (
             <div>
-                <form onSubmit={this._submit}>
-                    <input name="name" placeholder="Name" onChange={this._change}/> {showWarning && <div>Please use a valid name</div>}
+                <div>
+                    <h2>Demo Credentials (Click)</h2>
+                    <ul>
+                        <li onClick={login}>Adam</li>
+                        <li onClick={login}>Bob</li>
+                        <li onClick={login}>Cathy</li>
+                    </ul>
+                </div>
 
-                    <input type="submit" value="Sign me up"/>
+                <form onSubmit={this._submit}>
+                    <input name="name" placeholder="Name" onChange={this._change}/> {showWarning && <div>Just use a demo name pls</div>}
+
+                    <input type="submit" value="Log in"/>
                 </form>
             </div>
         );

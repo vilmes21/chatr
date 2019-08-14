@@ -1,6 +1,13 @@
 import React, {Component} from 'react';
 import OldMsgs from './OldMsgs';
 import axios from 'axios'
+import {
+    BrowserRouter as Router,
+    Route,
+    Link,
+    Redirect,
+    withRouter
+  } from 'react-router-dom'
 
 const _host = "ws://localhost:8081";
 let ws;
@@ -63,7 +70,11 @@ class ChatRoom extends Component {
     }
 
     render() {
-        const {username} = this.props;
+        const {username, isAuth} = this.props;
+        if (!isAuth){
+            return <Redirect to='/login' />
+        }
+        
         const {msg, oldMsgs} = this.state;
         return (
             <div>
