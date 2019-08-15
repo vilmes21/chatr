@@ -11,6 +11,7 @@ import (
 type Store interface {
 	CreateSentence(s *Sentence) error
 	GetSentences(chatId int) ([]*Sentence, error)
+	FindChatIdByUserIds(userId int, user2Id int) error
 }
 
 var store Store

@@ -23,7 +23,8 @@ func main() {
     http.HandleFunc("/", sayHi)
     http.HandleFunc("/user/new", newUserHandler)
     http.HandleFunc("/sentence/create", CreateSentenceHandler)
-
+    http.HandleFunc("/chat/new", newChatHandler)
+    
 	go pushMsgToClient()
 
     log.Fatal(http.ListenAndServe(":8081", nil))

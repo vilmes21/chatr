@@ -3,3 +3,22 @@
     padding: 20px;
     background-color: lightgrey;
 }
+
+.chatWindow {
+    border: 1px black solid;
+    width: 200px;
+    height: 250px;
+    display: inline-block;
+    position: relative;
+}
+
+.chatWithTitle {
+    background: lightgrey;
+}
+
+.sendArea {
+    position: absolute;
+    bottom: 0;
+    left:0;
+    right:0;
+}

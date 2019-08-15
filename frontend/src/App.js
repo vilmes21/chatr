@@ -14,7 +14,8 @@ import {
 
 class App extends Component {
     state = {
-        username: "",
+        nameNow: "",
+        userNowId: 0,
         speakerId: 0,
         isAuth: false
     }
@@ -25,8 +26,8 @@ class App extends Component {
         this.setState({username: name, speakerId: 3})
     }
 
-    login = () =>{
-        this.setState({isAuth: true})
+    login = obj =>{
+        this.setState({isAuth: true, nameNow: obj.name, userNowId: obj.id})
     }
 
     logout = () =>{
@@ -34,7 +35,7 @@ class App extends Component {
     }
 
     render() {
-        const {username, speakerId, isAuth} = this.state;
+        const {isAuth, nameNow, userNowId} = this.state;
 
         const toAuthLinks = isAuth? null : 
         <span>
@@ -62,7 +63,7 @@ class App extends Component {
                   </ul>
                 </nav>
         
-                <Route path="/" exact component={()=>{return <Dashboard isAuth={isAuth}/>}} />
+                <Route path="/" exact component={()=>{return <Dashboard isAuth={isAuth} nameNow={nameNow} userNowId={userNowId}/>}} />
 
                 <Route path="/login" exact component={()=>{return <Login login={this.login} isAuth={isAuth}/>}} />                
                 

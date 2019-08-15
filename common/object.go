@@ -1,5 +1,10 @@
 package common
 
+type ChatPair struct {
+	UserId int `json:"userId"`
+	User2Id int `json:"user2Id"`
+}
+
 type JsonResp struct {
 	Success bool
 	Id int

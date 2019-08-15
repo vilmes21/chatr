@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import demoNames from '../fakeData/demoNames'
+import fakeFriends from '../fakeData/fakeFriends'
 import {
     BrowserRouter as Router,
     Route,
@@ -7,6 +7,7 @@ import {
     Redirect,
     withRouter
   } from 'react-router-dom'
+import ExistingUsers from './ExistingUsers';
 
 class Login extends Component {
     state = {
@@ -29,7 +30,7 @@ class Login extends Component {
             ...this.state
         };
 
-        if (demoNames[name]) {
+        if (fakeFriends[name]) {
             this.props.login()
         } else {
             this.setState({showWarning: true})
@@ -41,18 +42,20 @@ class Login extends Component {
         const {showWarning} = this.state;
 
         if (isAuth) {
-            return <Redirect to='/' foo={33}/>
+            return <Redirect to='/' />
         }
 
         return (
             <div>
                 <div>
                     <h2>Demo Credentials (Click)</h2>
-                    <ul>
+
+                    <ExistingUsers users={fakeFriends} login={login}/>
+                    {/* <ul>
                         <li onClick={login}>Adam</li>
                         <li onClick={login}>Bob</li>
                         <li onClick={login}>Cathy</li>
-                    </ul>
+                    </ul> */}
                 </div>
 
                 <form onSubmit={this._submit}>
