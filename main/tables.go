@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"time"
 	"fmt"
+	"../common"
 	"../keys"
 	_"github.com/lib/pq"
 )
@@ -11,17 +12,20 @@ import (
 type Store interface {
 	CreateSentence(s *Sentence) error
 	GetSentences(chatId int) ([]*Sentence, error)
-	FindChatIdByUserIds(userId int, user2Id int) error
+	// FindChatIdByUserIds(userId int, user2Id int) common.JsonResp
+	CreateChat() int
+	CreateChatSpeakers(chaterIds *common.ChatPair) bool
 }
 
-var store Store
-
-func InitStore(s Store) {
-	store = s
-}
 
 type dbStore struct {
 	db *sql.DB
+}
+
+var store dbStore
+
+func InitStore(s *dbStore) {
+	store = *s
 }
 
 type Chat struct {

@@ -22,3 +22,8 @@
     left:0;
     right:0;
 }
+
+.oldmsgArea {
+    overflow-y: scroll;
+    height: 175px;
+}

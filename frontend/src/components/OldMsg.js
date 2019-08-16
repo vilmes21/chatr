@@ -2,10 +2,10 @@ import React, {Component} from 'react';
 
 class OldMsg extends Component {
     render() {
-        const {content, chatSpeakerId} = this.props.msg;
+        const {content, speakerUserId} = this.props.msg;
 
         return (
-            <div><strong>Speaker {chatSpeakerId}</strong>: {content}</div>
+            <div><strong>User {speakerUserId}</strong>: {content}</div>
         )
     }
 }

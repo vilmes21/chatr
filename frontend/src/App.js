@@ -2,7 +2,6 @@ import React, {Component} from 'react';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Dashboard from './components/Dashboard';
-import ChatRoom from './components/ChatRoom';
 import './App.css';
 import {
     BrowserRouter as Router,

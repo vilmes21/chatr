@@ -10,6 +10,18 @@ import {
 import Friends from './Friends'
 import ChatWindows from './ChatWindows'
 
+const _wshost = "ws://localhost:8081";
+let ws;
+
+const connectWS = () =>{
+    ws = new WebSocket(_wshost + "/sentence/create");
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data)
+        const {content, speakerUserId} = data;
+        console.log("windows compo got de server:", data)
+        // this.appendMsg({content, speakerUserId})
+    }
+}
 
 class Dashboard extends Component {
     state = {
@@ -22,6 +34,20 @@ class Dashboard extends Component {
         setTimeout(()=>{
             this.setState({friends: fakeFriends})
         }, 0)
+    }
+
+    closeChat = friendId => {
+        const {chatingWith}=this.state;
+        const stillInChat = chatingWith.filter(x => x.id !== friendId);
+
+        if (stillInChat.length === 0){
+            console.log("Dashboard compo FE close...")
+            ws.close()
+        }
+
+        this.setState({
+            chatingWith: stillInChat
+        })
     }
 
     addChat = userObj => {
@@ -51,7 +77,7 @@ class Dashboard extends Component {
 
                {friends? <Friends addChat={this.addChat} nameNow={nameNow} friends={friends}/>: <span>loading...</span>}
 
-               <ChatWindows userNowId={userNowId} users={chatingWith}/>
+               <ChatWindows connectWS={connectWS} ws={ws} closeChat={this.closeChat} userNowId={userNowId} users={chatingWith}/>
             </div>
         );
     }

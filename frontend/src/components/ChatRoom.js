@@ -9,7 +9,7 @@ import {
     withRouter
   } from 'react-router-dom'
 
-const _host = "ws://localhost:8081";
+const _wshost = "ws://localhost:8081";
 let ws;
 
 const _fakeChatId = Math.ceil(Math.random() * 10) % 2==0? 1: 2
@@ -22,7 +22,7 @@ class ChatRoom extends Component {
     }
 
     componentDidMount(){
-        ws = new WebSocket(_host + "/sentence/create");
+        ws = new WebSocket(_wshost + "/sentence/create");
    
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data)
