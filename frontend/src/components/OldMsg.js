@@ -5,7 +5,7 @@ class OldMsg extends Component {
         const {content, speakerUserId} = this.props.msg;
 
         return (
-            <div><strong>User {speakerUserId}</strong>: {content}</div>
+            <div className="msgsInWindow"><strong>User {speakerUserId}</strong>: {content}</div>
         )
     }
 }

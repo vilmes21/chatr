@@ -8,6 +8,7 @@ class ExistingUsers extends Component {
             .keys(users)
             .map(x => {
                 return <div
+                key={users[x]}
                     onClick={() => {
                     login({name: x, id: users[x]})
                 }}>{users[x]}. {x}</div>
