@@ -10,7 +10,8 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var clients = make(map[*websocket.Conn]int)
+// var clients = make(map[*websocket.Conn]int)
+var clients = make(map[int]*websocket.Conn)
 var broadcast = make(chan common.MessageObj)
 
 var upgrader = websocket.Upgrader{
@@ -19,74 +20,79 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func getChatSpeakerId(chatId int, userNowId int) int {
-	fmt.Println("chatId: ", chatId, " userNowId: ", userNowId)
-	
-	row, err := store.db.Query(
-		`SELECT id FROM chat_speaker WHERE chat_id= $1 AND user_id= $2`, 
-		chatId, 
-		userNowId,
-	)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	id := 0
-	for row.Next() {
-		err := row.Scan(&id)
-		if err != nil {
-			log.Fatal(err)
-		}
-	} 
-
-	return id
-}
-
 func CreateSentenceHandler(w http.ResponseWriter, r *http.Request) {
+	// r.ParseForm()
+	// firstData := r.FormValue("userNowId")
+	// fmt.Println(`firstData23: `,firstData)
+	
 	ws, err := upgrader.Upgrade(w, r, nil)
+
+	// err7 := ws.WriteJSON(`{"test":true,"fun":true,"adsf":3}`)
+	// if err7 !=nil {
+	// 	fmt.Println("OH err7 !")
+	// 	log.Fatal(err7)
+	// }
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer ws.Close()
 
+	
+
+	// if firstData > 0 {
+	// 	//todo: auth, check is really logged in 1st
+	// 	if _, exist := clients[msg.UserNowId]; !exist {
+	// 		clients[msg.UserNowId] = ws
+	// 		fmt.Println(`Just mapped CONN OF msg.UserNowId:`, msg.UserNowId)
+	// 	}
+	// }
+
 	for {
 		var msg common.MsgReceived
 		err := ws.ReadJSON(&msg)
-
-		if msg.ChatId == 0 || msg.UserNowId ==0 {
-			log.Printf("1st check error: userNowSpeakerId == 0")
-			return
-		}
-		//todo: verify in db before setting this
-		userNowSpeakerId := getChatSpeakerId(msg.ChatId, msg.UserNowId)
-		if userNowSpeakerId == 0 {
-			log.Printf("error: userNowSpeakerId == 0")
-			return
-		}
 		
-		clients[ws] = msg.ChatId
+		if msg.ChatId == 0 || msg.UserNowId ==0 {
+			fmt.Println("GONNA break. 1st check error, msg.ChatId: ", msg.ChatId, " msg.UserNowId: ", msg.UserNowId)
+			break
+		}
+
+
+		
+		memberIds := getChatMembersIds(msg.UserNowId, msg.ChatId)
 
 		if err != nil {
 			log.Printf("error: %v", err)
-			delete(clients, ws)
+			// delete(clients, ws)
 			break
 		}
 
 		//save to db
-		newS := Sentence {Time: time.Now(), Content: msg.Msg, ChatSpeakerId: userNowSpeakerId}
+		newS := Sentence {
+			Time: time.Now(), 
+			Content: msg.Msg, 
+			ChatSpeakerId: memberIds.SenderSpeakerId,
+		}
+
 		err = store.CreateSentence(&newS) 
 		if err != nil {
 			log.Printf("error: %v", err)
 			break
 		}
 
-		broadcast <- common.MessageObj {
-			SpeakerUserId: msg.UserNowId,
-			Content: msg.Msg,
-			ChatId: msg.ChatId,
+		//In 2-person chat, only 1 listener. In group chats, more listeners
+		//todo: or consider making ReceiverUserId an array?
+		for _, listenerId := range memberIds.ListenersUserIds {
+			broadcast <- common.MessageObj {
+				ReceiverUserId: listenerId, 
+				SpeakerUserId: msg.UserNowId,
+				Content: msg.Msg,
+				ChatId: msg.ChatId,
+			}
 		}
+
+
 	}
 }
 
@@ -94,14 +100,14 @@ func pushMsgToClient() {
 	for {
 		msg := <-broadcast
 	
-		//todo: for loop can be optimized to using arrary or map of clients of one chatID 
-		for client, chatId := range clients {
-			if chatId == msg.ChatId {
+		//need to push to all logged in users
+		for userId, client := range clients {
+			if userId == msg.SpeakerUserId || userId == msg.ReceiverUserId {
 				err := client.WriteJSON(msg)
 				if err != nil {
 					log.Printf("error: %v", err)
 					client.Close()
-					delete(clients, client)
+					// delete(clients, client)
 				}
 			}
 		}

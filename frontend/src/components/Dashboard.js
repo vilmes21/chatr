@@ -9,56 +9,100 @@ class Dashboard extends Component {
         friends: false,
         chatingWith: [],
         ws: false,
+        unreadBadges: {},
         msgsOfChats: {}
-        //{3: [{speakerUserId: 5, content: "hi"}]}
+        //{chatId: [{speakerUserId: 5, content: "hi", receiverUserId: 7}]}
     }
 
     componentDidMount = () => {
         //Demo fake ajax
         setTimeout(() => {
-            this.setState({friends: fakeFriends})
+            this.setState({
+                friends: fakeFriends,
+                ws: this.connectWS()
+            })
         }, 0)
     }
 
+    rmBadge = userId => {
+        const {unreadBadges} = this.state;
+        this.setState({
+            unreadBadges: {
+                ...unreadBadges,
+                [userId]: 0
+            }
+        })
+    }
+
     addToMsgsOfChats = obj => {
+        // console.log("func addToMsgsOfChats obj:") console.table(obj)
+
         const {msgsOfChats} = this.state;
-        const {chatId, content, speakerUserId} = obj;
+        const {chatId, content, speakerUserId, receiverUserId} = obj;
         const arr = msgsOfChats[chatId];
+        const newestMsg = {
+            content,
+            speakerUserId,
+            receiverUserId
+        };
 
         const arr2 = Array.isArray(arr)
             ? [
-                ...arr, {
-                    content,
-                    speakerUserId
-                }
+                ...arr,
+                newestMsg
             ]
-            : [
-                {
-                    content,
-                    speakerUserId
-                }
-            ];
+            : [newestMsg];
 
         this.setState({
             msgsOfChats: {
                 ...msgsOfChats,
                 [chatId]: arr2
             }
-        }, ()=>{
+        }, () => {
             console.log("----------------")
             console.table(this.state.msgsOfChats)
         })
     }
 
+    updateMsgBadge = data => {
+        const {content, speakerUserId, chatId, receiverUserId} = data;
+        const {userNowId} = this.props;
+
+        if (userNowId === receiverUserId) {
+            const {unreadBadges} = this.state;
+            //int
+            const unreadNum = unreadBadges[speakerUserId];
+            const _unreadBadges = {}
+            if (unreadNum) {
+                _unreadBadges[speakerUserId] = unreadNum + 1;
+            } else {
+                _unreadBadges[speakerUserId] = 1;
+            }
+
+            this.setState({
+                unreadBadges: {
+                    ...unreadBadges,
+                    ..._unreadBadges
+                }
+            })
+        }
+    }
+
     connectWS = () => {
         const ws = new WebSocket("ws://localhost:8081/sentence/create");
 
+        ws.onopen = ev => {
+            const {userNowId}=this.props;
+            ws.send({userNowId}); 
+            console.log("FIRST ws SENT: {userNowId}:", {userNowId})
+        };
+
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data)
-            const {content, speakerUserId, chatId} = data;
+            const {content, speakerUserId, chatId, receiverUserId} = data;
             console.log("windows compo got de server:", data)
-            // this.appendMsg({content, speakerUserId})
-            this.addToMsgsOfChats({content, speakerUserId, chatId})
+            this.addToMsgsOfChats({content, speakerUserId, chatId, receiverUserId})
+            this.updateMsgBadge(data)
         }
         return ws;
     }
@@ -66,24 +110,11 @@ class Dashboard extends Component {
     closeChat = friendId => {
         const {chatingWith, ws} = this.state;
         const stillInChat = chatingWith.filter(x => x.id !== friendId);
-
-        if (stillInChat.length === 0) {
-            console.log("Dashboard compo FE close...")
-            ws.close()
-        }
-
         this.setState({chatingWith: stillInChat})
     }
 
     addChat = userObj => {
         const {chatingWith} = this.state;
-
-        //only connect websocket when 1st chat window
-        if (chatingWith.length === 0) {
-            this.setState({
-                ws: this.connectWS()
-            })
-        }
 
         const alreadyInChat = chatingWith.find(x => x.id === userObj.id);
         if (alreadyInChat) 
@@ -104,7 +135,7 @@ class Dashboard extends Component {
             return <Redirect to='/login'/>
         }
 
-        const {friends, chatingWith, ws, msgsOfChats} = this.state;
+        const {friends, chatingWith, ws, msgsOfChats, unreadBadges} = this.state;
 
         return (
             <div>
@@ -113,10 +144,16 @@ class Dashboard extends Component {
                 </h3>
 
                 {friends
-                    ? <Friends addChat={this.addChat} nameNow={nameNow} friends={friends}/>
+                    ? <Friends
+                            addChat={this.addChat}
+                            nameNow={nameNow}
+                            friends={friends}
+                            unreadBadges={unreadBadges}/>
                     : <span>loading...</span>}
 
                 <ChatWindows
+                    rmBadge={this.rmBadge}
+                    unreadBadges={unreadBadges}
                     msgsOfChats={msgsOfChats}
                     ws={ws}
                     closeChat={this.closeChat}

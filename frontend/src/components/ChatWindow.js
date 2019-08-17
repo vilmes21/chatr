@@ -2,10 +2,10 @@ import React, {Component} from 'react';
 import axios from 'axios'
 import OldMsgs from './OldMsgs';
 
-const scrollToBottom = htmlId => {
-    var objDiv = document.getElementById(htmlId);
-    objDiv.scrollTop = objDiv.scrollHeight;
-  }
+// const scrollToBottom = htmlId => {
+    // var objDiv = document.getElementById(htmlId);
+    // objDiv.scrollTop = objDiv.scrollHeight;
+//   }
 
 class ChatWindow extends Component {
     state = {
@@ -22,9 +22,9 @@ class ChatWindow extends Component {
         return "chatwindowJS_" + this.state.chatId;
     }
 
-    componentDidUpdate(){
-        scrollToBottom(this.getChatHtmlId())
-    }
+    // componentDidUpdate(){
+    //     scrollToBottom(this.getChatHtmlId())
+    // }
 
     _change = (ev) => {
         const obj = {};
@@ -51,7 +51,6 @@ class ChatWindow extends Component {
                 chatId
             };
 
-            console.log(`what is ws.send?`, ws.send)
             ws.send(JSON.stringify(newMsg));
             this.setState({msg: ""})
         } else {
@@ -69,25 +68,30 @@ class ChatWindow extends Component {
         }
     }
 
-
-
     render() {
-        const {user, userNowId, closeChat, msgs} = this.props;
+        const {user, userNowId,rmBadge, closeChat, msgs, unreadNumFromUser} = this.props;
         const {chatId, msg} = this.state;
         const msgsOfThisChat = msgs[chatId] || [];
 
         return (
-            <div key={user.id} className="chatWindow">
+            <div onClick={()=>{
+                if (unreadNumFromUser >0) {
+                    rmBadge(user.id)
+                }
+            }} className="chatWindow">
                 <div className="chatWithTitle">
                     <button
                         onClick={() => {
                         closeChat(user.id);
-                        // console.log("FE close ws...");
-                        // ws.close();
                     }}>x</button>
                     {user.id}. {user.name}
                     <br/>
                     chat-{chatId}
+                    <br />
+                    {
+                        unreadNumFromUser>0 && 
+                        <span>Unread: {unreadNumFromUser}</span>
+                    }
                 </div>
                 <div className="oldmsgArea" id={this.getChatHtmlId()}>
                     <OldMsgs oldMsgs={msgsOfThisChat}/>
@@ -95,7 +99,6 @@ class ChatWindow extends Component {
                 <div className="sendArea">
                     <form onSubmit={this._submit}>
                         <input
-                            autoFocus
                             value={msg}
                             name="msg"
                             placeholder="Say stuff..."

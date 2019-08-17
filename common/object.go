@@ -1,5 +1,11 @@
 package common
 
+type ChatMembersIds struct {
+	SenderUserId int `json:"senderUserId"`
+	SenderSpeakerId int `json:"senderSpeakerId"`
+	ListenersUserIds []int `json:"listenersUserIds"`
+};
+
 type MsgReceived struct {
 	Msg string `json:"msg"`
 	UserNowId int `json:"userNowId"`
@@ -24,6 +30,7 @@ type Message struct {
 }
 
 type MessageObj struct {
+	ReceiverUserId int `json:"receiverUserId"`
 	SpeakerUserId int `json:"speakerUserId"`
 	Content string `json:"content"`
 	ChatId int `json:"chatId"`

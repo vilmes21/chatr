@@ -3,7 +3,7 @@ import React, {Component} from 'react';
 class Friend extends Component {
     render() {
 
-        const {name, id, nameNow, addChat} = this.props;
+        const {name, id, nameNow, badgeNum,addChat} = this.props;
         const isSelf = name === nameNow;
         const _onclick = isSelf
             ? () => {
@@ -16,7 +16,9 @@ class Friend extends Component {
             return <div onClick={_onclick}>{id}. {name}
                 {isSelf
                     ? "(you)"
-                    : null}</div>
+                    : null}
+                    {badgeNum>0 && <span className="badgeNum">{badgeNum}</span>}
+                    </div>
     }
 }
 

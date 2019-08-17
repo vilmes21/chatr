@@ -27,3 +27,13 @@
     overflow-y: scroll;
     height: 175px;
 }
+
+.friendsDiv {
+    padding-left: 130px;
+}
+
+.badgeNum {
+    background: pink;
+    padding: 5px;
+    border-radius: 10px;
+}
