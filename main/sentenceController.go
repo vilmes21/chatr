@@ -21,44 +21,41 @@ var upgrader = websocket.Upgrader{
 }
 
 func CreateSentenceHandler(w http.ResponseWriter, r *http.Request) {
-	// r.ParseForm()
-	// firstData := r.FormValue("userNowId")
-	// fmt.Println(`firstData23: `,firstData)
-	
 	ws, err := upgrader.Upgrade(w, r, nil)
-
-	// err7 := ws.WriteJSON(`{"test":true,"fun":true,"adsf":3}`)
-	// if err7 !=nil {
-	// 	fmt.Println("OH err7 !")
-	// 	log.Fatal(err7)
-	// }
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer ws.Close()
-
 	
+	var msg common.MsgReceived
 
-	// if firstData > 0 {
-	// 	//todo: auth, check is really logged in 1st
-	// 	if _, exist := clients[msg.UserNowId]; !exist {
-	// 		clients[msg.UserNowId] = ws
-	// 		fmt.Println(`Just mapped CONN OF msg.UserNowId:`, msg.UserNowId)
-	// 	}
-	// }
+	//this line is blocking
+	err1 := ws.ReadJSON(&msg)
+	if err1 != nil {
+		log.Fatal(`err1: `)
+	}
+
+	if msg.UserNowId == 0 {
+		ws.WriteJSON(`{"Provided user id":false}`)
+		return
+	}
+
+	//todo: auth, check is really logged in 1st
+	//note: this way, if same user opens multiple windows, it will only feed the 1st window.
+	if _, exist := clients[msg.UserNowId]; !exist {
+		clients[msg.UserNowId] = ws
+		fmt.Println(`before for loop Just mapped CONN OF msg.UserNowId:`, msg.UserNowId)
+	}
 
 	for {
-		var msg common.MsgReceived
 		err := ws.ReadJSON(&msg)
 		
-		if msg.ChatId == 0 || msg.UserNowId ==0 {
-			fmt.Println("GONNA break. 1st check error, msg.ChatId: ", msg.ChatId, " msg.UserNowId: ", msg.UserNowId)
-			break
+		if msg.UserNowId ==0 {
+			fmt.Println("GONNA skip. msg.ChatId: ", msg.ChatId, " msg.UserNowId: ", msg.UserNowId)
+			continue
 		}
-
-
 		
 		memberIds := getChatMembersIds(msg.UserNowId, msg.ChatId)
 

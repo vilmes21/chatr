@@ -93,8 +93,7 @@ class Dashboard extends Component {
 
         ws.onopen = ev => {
             const {userNowId}=this.props;
-            ws.send({userNowId}); 
-            console.log("FIRST ws SENT: {userNowId}:", {userNowId})
+            ws.send(JSON.stringify({userNowId })); 
         };
 
         ws.onmessage = (event) => {

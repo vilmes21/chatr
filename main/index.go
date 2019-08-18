@@ -22,6 +22,8 @@ func main() {
 
     http.HandleFunc("/", sayHi)
     http.HandleFunc("/user/new", newUserHandler)
+    http.HandleFunc("/user/login", loginHandler)
+    http.HandleFunc("/user/login2", login2Handler)
     http.HandleFunc("/sentence/create", CreateSentenceHandler)
     http.HandleFunc("/chat/new", newChatHandler)
     
